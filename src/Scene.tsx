@@ -1,14 +1,20 @@
 import useSize from '@react-hook/size';
-import { MouseEvent as SyntheticMouseEvent, useRef } from 'react';
+import { MouseEvent as SyntheticMouseEvent, useRef, useState } from 'react';
 import beachImage from './resources/beach.jpg';
 import styles from './Scene.module.css';
+import TargetCircle, { TargetCircleData } from './TargetCircle';
 
 const BEACH_NATURAL_WIDTH = 1920;
 const BEACH_NATURAL_HEIGHT = 1080;
+const TARGET_CIRCLE_NATURAL_RADIUS = 80;
 
 const Scene = () => {
   const sceneRef = useRef(null);
   const [currentWidth, currentHeight] = useSize(sceneRef);
+
+  const [targetCircleData, setTargetCircleData] = useState<
+    TargetCircleData | undefined
+  >(undefined);
 
   const handleClick = (e: SyntheticMouseEvent<Element, MouseEvent>) => {
     // Get relative click coords inside the Scene div
@@ -24,7 +30,15 @@ const Scene = () => {
       (BEACH_NATURAL_HEIGHT / currentHeight) * relativeY
     );
 
-    console.log(`natural_x: ${naturalX}\tnatural_y: ${naturalY}`);
+    // Create a TargetCircle with absolute position and window-scaled radius.
+    const windowScaledRadius =
+      (currentWidth / BEACH_NATURAL_WIDTH) * TARGET_CIRCLE_NATURAL_RADIUS;
+
+    setTargetCircleData({
+      x: e.pageX,
+      y: e.pageY,
+      radius: windowScaledRadius,
+    });
   };
 
   return (
@@ -34,6 +48,7 @@ const Scene = () => {
         alt="Where's Waldo scene"
         className={styles['scene-img']}
       />
+      {targetCircleData && <TargetCircle {...targetCircleData} />}
     </div>
   );
 };
