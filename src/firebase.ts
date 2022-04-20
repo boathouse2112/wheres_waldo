@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase } from 'firebase/database';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { CharacterData, CharacterName } from './App';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyByjydA86rL9fyUl-_Tpnvyw7Z9g5hNRKM',
@@ -12,8 +13,24 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getFirestore(app);
+const characterDocRef = doc(db, 'images', 'beach');
 
-const getCoordinates = (imageID: string) => {};
+const getCharacterData = async (
+  name: CharacterName
+): Promise<CharacterData | undefined> => {
+  const characterDocSnap = await getDoc(characterDocRef);
 
-export { getCoordinates };
+  if (characterDocSnap.exists()) {
+    const docData = characterDocSnap.data();
+    const characters = docData.characters;
+    const characterData = characters[name];
+    return {
+      x: characterData.x,
+      y: characterData.y,
+      radius: characterData.radius,
+    };
+  }
+};
+
+export { getCharacterData };

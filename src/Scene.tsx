@@ -1,5 +1,7 @@
 import useSize from '@react-hook/size';
 import { MouseEvent as SyntheticMouseEvent, useRef, useState } from 'react';
+import { CharacterName, CHARACTER_NAMES } from './App';
+import { getCharacterData } from './firebase';
 import beachImage from './resources/beach.jpg';
 import styles from './Scene.module.css';
 import TargetCircle, { TargetCircleData } from './TargetCircle';
@@ -7,6 +9,32 @@ import TargetCircle, { TargetCircleData } from './TargetCircle';
 const BEACH_NATURAL_WIDTH = 1920;
 const BEACH_NATURAL_HEIGHT = 1080;
 const TARGET_CIRCLE_NATURAL_RADIUS = 80;
+
+// Returns a single matching character, or undefined if no character matched
+const matchingCharacter = async (
+  targetX: number,
+  targetY: number
+): Promise<CharacterName | undefined> => {
+  for (const characterName of CHARACTER_NAMES) {
+    const characterData = await getCharacterData(
+      characterName as CharacterName
+    );
+    if (characterData !== undefined) {
+      const { x, y, radius } = characterData;
+
+      // Check if the target coord is within the character-radius of the character coord
+      const xDistance = x - targetX;
+      const yDistance = y - targetY;
+      const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
+
+      if (distance <= radius) {
+        return characterName as CharacterName;
+      }
+    }
+  }
+
+  return undefined;
+};
 
 const Scene = () => {
   const sceneRef = useRef(null);
@@ -28,6 +56,11 @@ const Scene = () => {
     );
     const naturalY = Math.floor(
       (BEACH_NATURAL_HEIGHT / currentHeight) * relativeY
+    );
+
+    console.log(`x: ${naturalX}\ty: ${naturalY}`);
+    matchingCharacter(naturalX, naturalY).then((character) =>
+      console.log('matching character: ', character)
     );
 
     // Create a TargetCircle with absolute position and window-scaled radius.
