@@ -1,35 +1,30 @@
-import { SyntheticEvent } from 'react';
-import { CharacterName, CHARACTER_NAMES } from './App';
+import { PropsWithChildren } from 'react';
+import { PageCoord } from './App';
+import styles from './Target.module.css';
+import TargetCircle from './TargetCircle';
 
-const TargetMenu = (props: {
-  x: number;
-  y: number;
-  handleCharacterChoice: (
-    x: number,
-    y: number,
-    name: CharacterName
-  ) => Promise<void>;
-}) => {
-  // TODO: The absolute-position padding offsets are ruining everything.
-  // I need a better way of thinking about coords.
-  const drawMenu = () => {
-    console.log(`menu-coords: [${props.x}, ${props.y}]`);
+interface TargetMenuData {
+  coords: PageCoord; // circle center point
+  radius: number; // circle radius
+  color: string; // color of the circle
+}
 
-    return CHARACTER_NAMES.map((name) => {
-      return (
-        <li key={name} onClick={handleClick(name)}>
-          {name}
-        </li>
-      );
-    });
-  };
-
-  const handleClick = (name: CharacterName) => (e: SyntheticEvent) => {
-    e.stopPropagation();
-    props.handleCharacterChoice(props.x, props.y, name);
-  };
-
-  return <ul>{drawMenu()}</ul>;
+const TargetMenu = (props: PropsWithChildren<TargetMenuData>) => {
+  return (
+    <div
+      className={styles['target']}
+      style={{
+        left: props.coords.x - props.radius,
+        top: props.coords.y - props.radius,
+        gap: props.radius * 0.25,
+      }}
+    >
+      <TargetCircle {...props} />
+      {props.children}
+    </div>
+  );
 };
+
+export type { TargetMenuData };
 
 export default TargetMenu;
