@@ -4,11 +4,12 @@ import { CharacterName, CHARACTER_NAMES } from './App';
 import { getCharacterData } from './firebase';
 import beachImage from './resources/beach.jpg';
 import styles from './Scene.module.css';
-import TargetCircle, { TargetCircleData } from './TargetCircle';
+import Target, { TargetData } from './Target';
+import TargetMenu from './TargetMenu';
 
 const BEACH_NATURAL_WIDTH = 1920;
 const BEACH_NATURAL_HEIGHT = 1080;
-const TARGET_CIRCLE_NATURAL_RADIUS = 80;
+const TARGET_CIRCLE_NATURAL_RADIUS = 70;
 
 // Returns a single matching character, or undefined if no character matched
 const matchingCharacter = async (
@@ -37,12 +38,48 @@ const matchingCharacter = async (
 };
 
 const Scene = () => {
-  const sceneRef = useRef(null);
-  const [currentWidth, currentHeight] = useSize(sceneRef);
+  const imgRef = useRef(null);
+  const [currentWidth, currentHeight] = useSize(imgRef);
 
-  const [targetCircleData, setTargetCircleData] = useState<
-    TargetCircleData | undefined
-  >(undefined);
+  const [targetData, setTargetData] = useState<TargetData | undefined>(
+    undefined
+  );
+
+  const [successMarkerData, setSuccessMarkerData] = useState<TargetData[]>([]);
+
+  const createTarget = (x: number, y: number) => {
+    // Create a Target with a menu
+    const windowScaledRadius =
+      (currentWidth / BEACH_NATURAL_WIDTH) * TARGET_CIRCLE_NATURAL_RADIUS;
+
+    setTargetData({
+      x,
+      y,
+      radius: windowScaledRadius,
+      color: 'black',
+    });
+  };
+
+  const createSuccessMarker = (x: number, y: number) => {
+    const windowScaledRadius =
+      (currentWidth / BEACH_NATURAL_WIDTH) * TARGET_CIRCLE_NATURAL_RADIUS;
+
+    setSuccessMarkerData([
+      { x, y, radius: windowScaledRadius, color: 'green' },
+      ...successMarkerData,
+    ]);
+  };
+
+  const drawSuccessMarkers = () => {
+    return successMarkerData.map((data) => <Target {...data} />);
+  };
+
+  const naturalCoords = (x: number, y: number) => {
+    const naturalX = Math.floor((BEACH_NATURAL_WIDTH / currentWidth) * x);
+    const naturalY = Math.floor((BEACH_NATURAL_HEIGHT / currentHeight) * y);
+
+    return { x: naturalX, y: naturalY };
+  };
 
   const handleClick = (e: SyntheticMouseEvent<Element, MouseEvent>) => {
     // Get relative click coords inside the Scene div
@@ -50,38 +87,59 @@ const Scene = () => {
     const relativeX = e.pageX - currentTargetRect.left;
     const relativeY = e.pageY - currentTargetRect.top;
 
-    // Get click coords scaled up to the natural size of the image.
-    const naturalX = Math.floor(
-      (BEACH_NATURAL_WIDTH / currentWidth) * relativeX
-    );
-    const naturalY = Math.floor(
-      (BEACH_NATURAL_HEIGHT / currentHeight) * relativeY
-    );
+    const { x: naturalX, y: naturalY } = naturalCoords(relativeX, relativeY);
 
     console.log(`x: ${naturalX}\ty: ${naturalY}`);
     matchingCharacter(naturalX, naturalY).then((character) =>
       console.log('matching character: ', character)
     );
 
-    // Create a TargetCircle with absolute position and window-scaled radius.
-    const windowScaledRadius =
-      (currentWidth / BEACH_NATURAL_WIDTH) * TARGET_CIRCLE_NATURAL_RADIUS;
+    if (targetData === undefined) {
+      createTarget(e.pageX, e.pageY);
+    } else {
+      setTargetData(undefined);
+    }
+  };
 
-    setTargetCircleData({
-      x: e.pageX,
-      y: e.pageY,
-      radius: windowScaledRadius,
-    });
+  const handleCharacterChoice = async (
+    x: number,
+    y: number,
+    name: CharacterName
+  ) => {
+    // TODO: the coords are fucked.
+    setTargetData(undefined);
+
+    const { x: naturalX, y: naturalY } = naturalCoords(x, y);
+
+    console.log(
+      `Character choice --\tx: ${naturalX}\ty: ${naturalY}\tname: ${name}`
+    );
+
+    const match = await matchingCharacter(naturalX, naturalY);
+    console.log(`match: ${match}`);
+    if (match === name) {
+      createSuccessMarker(x, y);
+    }
   };
 
   return (
-    <div ref={sceneRef} onClick={handleClick} className={styles['scene']}>
+    <div onClick={handleClick} className={styles['scene']}>
       <img
+        ref={imgRef}
         src={beachImage}
         alt="Where's Waldo scene"
         className={styles['scene-img']}
       />
-      {targetCircleData && <TargetCircle {...targetCircleData} />}
+      {successMarkerData.length !== 0 && drawSuccessMarkers()}
+      {targetData && (
+        <Target {...targetData}>
+          <TargetMenu
+            x={targetData.x}
+            y={targetData.y}
+            handleCharacterChoice={handleCharacterChoice}
+          />
+        </Target>
+      )}
     </div>
   );
 };

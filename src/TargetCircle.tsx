@@ -1,10 +1,6 @@
-// x: page-scaled x, relative to page
-// y: page-scaled y, relative to page
-// radius: page-scaled circle radius
 interface TargetCircleData {
-  x: number; // page-scaled x, relative to scene
-  y: number; // page-scaled y, relative to scene
   radius: number; // page-scaled circle radius
+  color: string; // color of the circle
 }
 
 const TargetCircle = (props: TargetCircleData) => {
@@ -13,13 +9,10 @@ const TargetCircle = (props: TargetCircleData) => {
   return (
     <div
       style={{
-        position: 'absolute',
-        left: props.x - props.radius,
-        top: props.y - props.radius,
         width: diameter,
         height: diameter,
         borderRadius: props.radius,
-        border: '5px solid green',
+        border: `7px solid ${props.color}`,
       }}
     ></div>
   );
