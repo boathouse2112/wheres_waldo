@@ -6,14 +6,8 @@ import {
   useState,
 } from 'react';
 import { v4 as uuid } from 'uuid';
-import {
-  CharacterName,
-  CHARACTER_NAMES,
-  NaturalCoord,
-  PageCoord,
-  RelativeCoord,
-} from './App';
-import { getCharacterData } from './firebase';
+import { CharacterName, NaturalCoord, PageCoord, RelativeCoord } from './App';
+import { doesTargetMatchCharacter } from './firebase';
 import beachImage from './resources/beach.jpg';
 import styles from './Scene.module.css';
 import TargetMenu, { TargetMenuData } from './TargetMenu';
@@ -22,34 +16,6 @@ import TargetOptions from './TargetOptions';
 const BEACH_NATURAL_WIDTH = 1920;
 const BEACH_NATURAL_HEIGHT = 1080;
 const TARGET_CIRCLE_NATURAL_RADIUS = 70;
-
-// TODO: This shouldn't be here
-// Returns a single matching character, or undefined if no character matched
-const matchingCharacter = async (
-  target: NaturalCoord
-): Promise<CharacterName | undefined> => {
-  const { x: targetX, y: targetY } = target;
-
-  for (const characterName of CHARACTER_NAMES) {
-    const characterData = await getCharacterData(
-      characterName as CharacterName
-    );
-    if (characterData !== undefined) {
-      const { x, y, radius } = characterData;
-
-      // Check if the target coord is within the character-radius of the character coord
-      const xDistance = x - targetX;
-      const yDistance = y - targetY;
-      const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
-
-      if (distance <= radius) {
-        return characterName as CharacterName;
-      }
-    }
-  }
-
-  return undefined;
-};
 
 const Scene = () => {
   const imgRef: RefObject<HTMLImageElement> = useRef(null);
@@ -132,9 +98,12 @@ const Scene = () => {
     const naturalCoords = getNaturalCoords(relativeCoords);
 
     console.log(`x: ${naturalCoords.x}\ty: ${naturalCoords.y}`);
-    matchingCharacter(naturalCoords).then((character) =>
-      console.log('matching character: ', character)
-    );
+
+    doesTargetMatchCharacter(naturalCoords, 'waldo').then((doesMatch) => {
+      if (doesMatch) {
+        console.log('matching character: waldo');
+      }
+    });
 
     if (targetMenuData === undefined) {
       createTargetMenu(pageCoords);
@@ -156,9 +125,11 @@ const Scene = () => {
       `Character choice --\tx: ${naturalCoords.x}\ty: ${naturalCoords.y}\tname: ${name}`
     );
 
-    const match = await matchingCharacter(naturalCoords);
-    console.log(`match: ${match}`);
-    if (match === name) {
+    const doesMatch = await doesTargetMatchCharacter(naturalCoords, name);
+    console.log(
+      `coords: [${naturalCoords.x}, ${naturalCoords.y}]\tmatch: ${doesMatch}`
+    );
+    if (doesMatch) {
       createSuccessMarker(relativeCoords);
     }
   };

@@ -6,8 +6,7 @@ const CHARACTER_NAMES = ['odlaw', 'waldo', 'whitebeard'] as const;
 type CharacterName = typeof CHARACTER_NAMES[number];
 
 interface CharacterData {
-  x: number;
-  y: number;
+  coords: NaturalCoord;
   radius: number;
 }
 

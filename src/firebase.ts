@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { CharacterData, CharacterName } from './App';
+import { CharacterData, CharacterName, NaturalCoord } from './App';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyByjydA86rL9fyUl-_Tpnvyw7Z9g5hNRKM',
@@ -18,7 +18,7 @@ const characterDocRef = doc(db, 'images', 'beach');
 
 const getCharacterData = async (
   name: CharacterName
-): Promise<CharacterData | undefined> => {
+): Promise<CharacterData> => {
   const characterDocSnap = await getDoc(characterDocRef);
 
   if (characterDocSnap.exists()) {
@@ -26,11 +26,32 @@ const getCharacterData = async (
     const characters = docData.characters;
     const characterData = characters[name];
     return {
-      x: characterData.x,
-      y: characterData.y,
+      coords: { x: characterData.x, y: characterData.y },
       radius: characterData.radius,
     };
+  } else {
+    throw new Error(`Could not find character ${name} in database.`);
   }
 };
 
-export { getCharacterData };
+// Returns whether
+const doesTargetMatchCharacter = async (
+  targetCoords: NaturalCoord,
+  name: CharacterName
+): Promise<boolean> => {
+  const { x: targetX, y: targetY } = targetCoords;
+
+  const characterData = await getCharacterData(name);
+
+  const { coords: characterCoords, radius } = characterData;
+  const { x: characterX, y: characterY } = characterCoords;
+
+  // Check if the target coord is within the character-radius of the character coord
+  const xDistance = characterX - targetX;
+  const yDistance = characterY - targetY;
+  const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
+
+  return distance <= radius;
+};
+
+export { getCharacterData, doesTargetMatchCharacter };
