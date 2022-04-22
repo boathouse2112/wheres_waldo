@@ -1,17 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { firebaseConfig } from '../config.js';
 import { CharacterData, CharacterName, NaturalCoord } from './App';
-
-const firebaseConfig = {
-  apiKey: 'AIzaSyByjydA86rL9fyUl-_Tpnvyw7Z9g5hNRKM',
-  authDomain: 'where-s-waldo-46cdf.firebaseapp.com',
-  databaseURL: 'https://where-s-waldo-46cdf-default-rtdb.firebaseio.com',
-  projectId: 'where-s-waldo-46cdf',
-  storageBucket: 'where-s-waldo-46cdf.appspot.com',
-  messagingSenderId: '203220912632',
-  appId: '1:203220912632:web:fc304dab9b37ede2582e0d',
-};
 
 const SET_START_TIME_URL =
   'http://localhost:5001/where-s-waldo-46cdf/us-central1/setStartTime?';

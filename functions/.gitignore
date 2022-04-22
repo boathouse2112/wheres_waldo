@@ -8,4 +8,8 @@ typings/
 # Node.js dependency directory
 node_modules/
 
+# Log files
 *.log
+
+# API config file
+config.js
