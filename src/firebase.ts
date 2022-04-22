@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import { CharacterData, CharacterName, NaturalCoord } from './App';
 
@@ -12,9 +13,34 @@ const firebaseConfig = {
   appId: '1:203220912632:web:fc304dab9b37ede2582e0d',
 };
 
+const SET_START_TIME_URL =
+  'http://localhost:5001/where-s-waldo-46cdf/us-central1/setStartTime?';
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const characterDocRef = doc(db, 'images', 'beach');
+
+const auth = getAuth();
+signInAnonymously(auth);
+const userID: Promise<string> = new Promise((resolve) => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      const userID = user.uid;
+      resolve(userID);
+    }
+  });
+});
+
+const setStartTime = async () => {
+  const id = await userID;
+  fetch(
+    SET_START_TIME_URL +
+      new URLSearchParams({
+        id: id,
+      }),
+    { mode: 'no-cors' }
+  );
+};
 
 const getCharacterData = async (
   name: CharacterName
@@ -54,4 +80,4 @@ const doesTargetMatchCharacter = async (
   return distance <= radius;
 };
 
-export { getCharacterData, doesTargetMatchCharacter };
+export { setStartTime, getCharacterData, doesTargetMatchCharacter };

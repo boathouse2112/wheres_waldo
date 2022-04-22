@@ -2,12 +2,13 @@ import useSize from '@react-hook/size';
 import {
   MouseEvent as SyntheticMouseEvent,
   RefObject,
+  useEffect,
   useRef,
   useState,
 } from 'react';
 import { v4 as uuid } from 'uuid';
 import { CharacterName, NaturalCoord, PageCoord, RelativeCoord } from './App';
-import { doesTargetMatchCharacter } from './firebase';
+import { doesTargetMatchCharacter, setStartTime } from './firebase';
 import beachImage from './resources/beach.jpg';
 import styles from './Scene.module.css';
 import TargetMenu, { TargetMenuData } from './TargetMenu';
@@ -27,6 +28,10 @@ const Scene = () => {
   const [successMarkerData, setSuccessMarkerData] = useState<TargetMenuData[]>(
     []
   );
+
+  useEffect(() => {
+    setStartTime();
+  }, []);
 
   const createTargetMenu = (coords: PageCoord) => {
     // Create a Target with a menu
