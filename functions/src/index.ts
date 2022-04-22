@@ -1,9 +1,20 @@
-import * as functions from "firebase-functions";
+import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+admin.initializeApp();
+
+// usage:
+// http://localhost:5001/where-s-waldo-46cdf/us-central1/setStartTime?id={USER_ID}
+export const setStartTime = functions.https.onRequest((request, response) => {
+  const id = request.query.id;
+
+  if (typeof id === 'string') {
+    const currentTime = admin.firestore.FieldValue.serverTimestamp();
+    const doc = admin.firestore().collection('timestamps').doc(id);
+
+    doc.set({
+      startTime: currentTime,
+      endTimes: [],
+    });
+  }
+});
